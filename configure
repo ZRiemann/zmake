@@ -238,7 +238,7 @@ function parse_zmake_target(){
                 echo "# ar" > zmake_${zmake_tgt}.ar
                 printf "\$(BUILDS_DIR)/lib${zmake_tgt}.a :" >> zmake_${zmake_tgt}.ar
             elif [ "ar" = "${zmake_type}" ]; then
-                printf "\$(BUILDS_DIR)/lib${zmake_tgt}.a" >> zmake_${zmake_tgt}
+                printf "\$(BUILDS_DIR)/lib${zmake_tgt}.a :" >> zmake_${zmake_tgt}
             else
                 # app
                 printf "\$(BUILDS_DIR)/${zmake_tgt} :" >> zmake_${zmake_tgt}
@@ -293,6 +293,7 @@ function parse_zmake_target(){
         fi
         # target : ... obj.o
         printf " ${obj_name}" >> zmake_${zmake_tgt}
+        printf " ${obj_name}" >> zmake_${zmake_tgt}_objs
 
         if [ "lib" = "${zmake_type}" ]; then
             # target.a : ... obj.o.ar
@@ -474,7 +475,12 @@ for target in $zmake_target; do
         echo >> Makefile
         echo "${target} : ${output}.\$(VERSION) \$(BUILDS_DIR)/lib${target}.a" >> Makefile
         # build library
-        printf "\t\$(CC) \$(OPTM) -shared -Wl,--sort-common,-soname,lib${target}.so.\$(VER_MAJOR) -o \$@ \$^\n" >> zmake_${target}
+        #printf "\t\$(CC) \$(OPTM) -shared -Wl,--sort-common,-soname,lib${target}.so.\$(VER_MAJOR) -o \$@ \$^\n" >> zmake_${target}
+        # filter dependent library, not use $^
+        printf "\t\$(CC) \$(OPTM) -shared -Wl,--sort-common,-soname,lib${target}.so.\$(VER_MAJOR) -o \$@" >> zmake_${target}
+        cat zmake_${target}_objs >> zmake_${target}
+        echo >> zmake_${target}
+
         printf "\t@rm -f ${output} ${output}.\$(VER_MAJOR)\n" >> zmake_${target}
         printf "\t@ln -s lib${target}.so.\$(VERSION) ${output}.\$(VER_MAJOR)\n" >> zmake_${target}
         printf "\t@ln -s lib${target}.so.\$(VER_MAJOR) ${output}\n" >> zmake_${target}
@@ -513,10 +519,13 @@ for target in $zmake_target; do
         cat zmake_${target}.ar >> Makefile
     elif [ 1 -eq $(grep -c "# ar" zmake_${target}) ]; then
         echo >> Makefile
-        echo "${target} : $(BUILDS_DIR)/lib${target}.a" >> Makefile
+        echo "${target} : \$(BUILDS_DIR)/lib${target}.a" >> Makefile
         # build archive
-        printf "\t\$(AR) cr \$@ \$^" >> zmake_${target}
-        printf "@ranlib \$@" >> zmake_${target}
+        printf "\t\$(AR) cr \$@ \$^\n" >> zmake_${target}
+        #printf "\t\$(AR) cr \$@" >> zmake_${target}
+        #cat zmake_${target}_objs >> zmake_${target}
+        #echo >> zmake_${target}
+        printf "\t@ranlib \$@\n" >> zmake_${target}
     else
         # generate target : output
         output="\$(BUILDS_DIR)/${target}"
@@ -532,7 +541,12 @@ for target in $zmake_target; do
             fi
         fi
 
-        printf "\t\$(CC) \$(OPTM) -Wl,--as-needed,--sort-common,-rpath=\$(BUILDS_DIR) -L\$(BUILDS_DIR) -o \$@ \$^ ${zmake_link}" >> zmake_${target}
+        #printf "\t\$(CC) \$(OPTM) -Wl,--as-needed,--sort-common,-rpath=\$(BUILDS_DIR) -L\$(BUILDS_DIR) -o \$@ \$^ ${zmake_link}" >> zmake_${target}
+        # filter dependent library, not use $^
+        printf "\t\$(CC) \$(OPTM) -Wl,--as-needed,--sort-common,-rpath=\$(BUILDS_DIR) -L\$(BUILDS_DIR) -o \$@" >> zmake_${target}
+        cat zmake_${target}_objs >> zmake_${target}
+        echo " ${zmake_link}" >> zmake_${target}
+
         # install/uninstall
         zmake_set_install=0
         if [ -f "zmake_${target}_flags" ]; then

@@ -464,6 +464,7 @@ printf "\t@echo \'#define zmake_build_date \"\$(shell date '+%%Y%%m%%d%%H%%M%%S'
 if [ "nil" != ${zgit_rev} ]; then
     printf "\t@echo \'#define zmake_git_rev \"\$(shell git rev-parse HEAD)\"\'>> \$(ZMAKE_HEADER)\n" >> Makefile
 fi
+printf "\t@echo \"#endif\" >> \$(ZMAKE_HEADER)\n" >> Makefile
 
 # target1 : obj1 obj2 ...
 for target in $zmake_target; do

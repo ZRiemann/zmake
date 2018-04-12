@@ -1,7 +1,7 @@
 # zmake
-auto configure framework, by embed make flags into source file.
+auto configure framework, by embed zmake flags into source file.
 
-> 一个自动化生产Makefile脚步框架，基于源码中嵌入zmake标签；
+> 一个自动化生产Makefile脚步框架，基于在源码中嵌入zmake标签；
 
 ## Table of contents
 * [License](#license)
@@ -9,9 +9,9 @@ auto configure framework, by embed make flags into source file.
   * [Welcom to zmake](#welcome-to-zsi)
   * [Benefit](#benefit)
   * [Sample](#sample)
-  * [Zmake tags](#zmake-tags)
   * [Build application](#build-application)
   * [Build library](#build-library)
+  * [Zmake tags](#zmake-tags)
   * [Directory](#directory)
 * [Enjoy zmake](#enjoy-zmake)
 
@@ -57,27 +57,12 @@ auto configure framework, by embed make flags into source file.
 - 学习难道高，不易熟练掌握，对于复杂项目配置也极其复杂；
 
 ### why not support window
-- please use visual studio
+- visual studio 已经出神入化无需画蛇添足；
 
 ### Sample
 - https://github.com/ZRiemann/zsi
 - https://github.com/ZRiemann/znt
 
-### zmake tags
--  每个.c/c++源文件之需要添加一个标签即可，每个可执行程序目标选取一个文件附加少数其他标记；
--  @zmake.install [off|ON];          默认 ON, 标记是否生成 install，如库的测试程序可以不安装
--  @zmake.build [off|ON];            默认 ON, 标记是否被编译生成目标文件，如库的测试程序可以默认不生成
--  @zmake.link <-l...>;              目标程序的连接库，如 -lzsi -lpthread
--  @zmake.depso <lib1 lib2 ...>;     目标程序依赖的当前编译动态库，不标记make -j8可能失败
--  @zmake.depar <lib1 lib2 ...>;     目标程序依赖的当前编译静态库，不标记make -j8可能失败
--  @zmake.app <name>;                目标程序名称
--  @zmake.lib <name>;                目标库名称，同时生成动态库和静态库，如:libszi.so.1.0.0/libzsi.a
--  @zmake.ar <name>;                 目标库名称，只生成静态库，如:大型项目可以按模块生成静态库后链接
-
-#### caution
-- 每个标签必须以 ; 结尾，否则可能会生成出错;
-- 一个文件被多个目标使用时，可以使用空格分隔多个目标，如 @zmake.lib zsi znt;
-- 依赖多个同等编译酷是也使用空格分开，如 @zmake.depso zsi znt; 这样make -j8时就不会出现编译出错；
 
 ### Build application
 - 拷贝configure到有zmake标签的项目目录，执行configure即可生成Makefile；
@@ -99,18 +84,36 @@ int main(){...}
 - 在其他模块文件下只需要添加一个标签，关联到对于得可执行文件即可
 ```
 /**
-*  作为tstmt目标的一个原文件关联到tstmt;
+ *  作为tstmt目标的模块关联到tstmt;
  * @zmake.app tstmt;
  */
 int tstmt_funs(){...}
+int tstmt_othrers(){...}
 ```
 ### Build library
 - 生成.so/.a库文件，只需在源码文件中添加一个@make.lib <libname> 标签即可；
 ```
 /** *.c
- * @zmake.lib zsi
+ * @zmake.lib zsi;
  */
 ```
+
+### Zmake tags
+-  每个.c/c++源文件之需要添加一个标签即可，每个可执行程序目标选取一个文件附加少数其他标记；
+-  @zmake.install [off|ON];          默认 ON, 标记是否生成 install，如库的测试程序可以不安装
+-  @zmake.build [off|ON];            默认 ON, 标记是否被编译生成目标文件，如库的测试程序可以默认不生成
+-  @zmake.link <-l...>;              目标程序的连接库，如 -lzsi -lpthread
+-  @zmake.depso <lib1 lib2 ...>;     目标程序依赖的当前编译动态库，不标记make -j8可能失败
+-  @zmake.depar <lib1 lib2 ...>;     目标程序依赖的当前编译静态库，不标记make -j8可能失败
+-  @zmake.app <name>;                目标程序名称
+-  @zmake.lib <name>;                目标库名称，同时生成动态库和静态库，如:libszi.so.1.0.0/libzsi.a
+-  @zmake.ar <name>;                 目标库名称，只生成静态库，如:大型项目可以按模块生成静态库后链接
+
+#### caution
+- 每个标签必须以 ; 结尾，否则可能会生成出错;
+- 一个文件被多个目标使用时，可以使用空格分隔多个目标，如 @zmake.lib zsi znt;
+- 依赖多个同等编译酷是也使用空格分开，如 @zmake.depso zsi znt; 这样make -j8时就不会出现编译出错；
+
 ### Directory
 - configure 脚步会自动搜索当前目录及其子目录下的所有c/c++源文件标签生成相应的Makefile
 - 不建议在其同级目录及其子目录添加第三方库源码，否则会增加不不要的文件检索

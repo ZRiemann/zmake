@@ -39,6 +39,9 @@ auto configure framework, by embed make flags into source file.
 > 源代码的方式，避免手动编写任何辅助脚步文件。
 > CMake/auto-configure 耗费学习成本，编写复杂；
 
+### build
+- 拷贝configure到有zmake标签的项目目录，执行configure即可生成Makefile；
+
 ### benefit
 - 学习成本低，8个标签，3分钟学会；
 - 支持任意复杂的c/c++项目类型（目标）；
@@ -81,6 +84,7 @@ auto configure framework, by embed make flags into source file.
 #### v1.0.1 TODO:
 - 自动下载安装指定依赖库
 - 支持命令行选项
+- 追踪更深层次的头文件依赖关系
 
 # Enjoy zmake
 

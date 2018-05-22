@@ -246,8 +246,8 @@ function parse_zmake_target(){
         zmake_value=${zmake_value#* }
 
         # test new target
-        [[ "$zmake_target" =~ "$zmake_tgt" ]] || {
-            zmake_target+=" $zmake_tgt"
+        [[ "$zmake_target" =~ " $zmake_tgt " ]] || {
+            zmake_target+=" $zmake_tgt "
         }
 
         # target : source.o

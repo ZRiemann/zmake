@@ -97,7 +97,6 @@ zmake_obj_names=""
 # 项目依赖字典，保证多线程模式下依赖项目的构建顺序
 declare -A zmake_deps
 # generate micro definitions
-zmake_all="Makefile"
 
 cat << !MAKE_ALL! > $zmake_all
 ifeq (\$(BUILDS), debug)
@@ -346,12 +345,10 @@ for item in ${all[@]}; do
             printf "\t\$(CC) \$(OPTM) -shared -Wl,--sort-common,-soname,${target_so_base}.\$(VER_MAJOR) -o \$@ ${target_objs}\n" >> $zmake_target_file
 
             # 建立软链接，本地测试用
-            printf "\trm -f ${target_so_name} ${target_so_name}.\$(VER_MAJOR)\n" >> $zmake_target_file
-            #printf "\t@ln -s ${target_so} ${target_so_major}\n" >> $zmake_target_file
-            #printf "\t@ln -s ${target_so_major} ${target_so_name}\n" >> $zmake_target_file
-            printf "\tcd \$(BUILDS_DIR) && ldconfig -n ./ && ln -s ${target_so_base}.\$(VER_MAJOR) ${target_so_base}\n" >> $zmake_target_file
+            printf "\t@rm -f ${target_so_name} ${target_so_name}.\$(VER_MAJOR)\n" >> $zmake_target_file
+            printf "\t@cd \$(BUILDS_DIR) && ldconfig -n ./ && ln -s ${target_so_base}.\$(VER_MAJOR) ${target_so_base}\n" >> $zmake_target_file
             echo "ifeq (\$(BUILDS),release)" >> $zmake_target_file
-            printf "\tstrip \$@\n" >> $zmake_target_file
+            printf "\t@strip \$@\n" >> $zmake_target_file
             echo "endif" >> $zmake_target_file
 
             if [ "$install" = "yes" ]; then

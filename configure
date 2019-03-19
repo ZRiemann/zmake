@@ -10,7 +10,9 @@
 #
 #-------------------------------------------------------------------------------
 # options
+. zmake
 
+if false; then
 # pint the configure file license
 function print_license(){
 cat << !LICENSE_END!
@@ -620,5 +622,5 @@ echo -e "${cl_p} sudo make BUILDS=debug install${cl_c}"
 echo -e "${cl_b}or for release version:${cl_c}"
 echo -e "${cl_p} make -j8${cl_c}"
 echo -e "${cl_p} sudo make install${cl_c}"
-
+fi #if false; then
 exit 0

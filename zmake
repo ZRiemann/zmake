@@ -60,9 +60,9 @@ print_license
 
 # generate zmake definitions header file
 # zmakedefs.h
-rm -fr ${zdist}
-mkdir -p ${zdist}
-zmake_header="${zdist}/zmakedefs.h"
+rm -fr ${zdest}
+mkdir -p ${zdest}
+zmake_header="${zdest}/zmakedefs.h"
 cat << !ZMAKE_DEF! > ${zmake_header}
 /**
  * MIT License
@@ -110,7 +110,7 @@ endif
 CC=${zcc}
 AR=${zar}
 CFLAG=${zcflag}
-BIN_ROOT=${zdist}
+BIN_ROOT=${zdest}
 ZMAKE_HEADER=${zmake_header}
 BUILDS_DIR=\$(BIN_ROOT)/\$(BUILDS)
 OBJ_DIR=\$(BIN_ROOT)/\$(BUILDS)_obj
@@ -193,6 +193,7 @@ for item in ${all[@]}; do
         target_app="\$(BUILDS_DIR)/${item}"
         zdbg "output app: $target_app"
         links=$(eval echo \${$item[links]})
+        zmake_cflag=$(eval echo \${$item[cflags]})
     else
         zerr "UNKNOWN type(${type}) error!"
         zinf "type mast be: so|ar|so+ar|app"
@@ -251,54 +252,51 @@ for item in ${all[@]}; do
 
         # 组装 obj 生成规则
         if [ "$type" = "so" ]; then
-            target_objs+=" $obj_name"
-            echo >> $zmake_obj_file
-            echo "$obj_name : ${path_name}$dependent_file" >> $zmake_obj_file
-            printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -fPIC -c -o \$@ $path_name\n" >> $zmake_obj_file
-
-            [[ "$zmake_obj_names" =~ "$obj_name" ]] || {
+            target_objs+=" ${obj_name}.pic"
+            [[ "$zmake_obj_names" =~ "${obj_name}.pic" ]] || {
                 # append new obj_name
-                zmake_obj_names+=" $obj_name"
+                zmake_obj_names+=" ${obj_name}.pic"
+                echo >> $zmake_obj_file
+                echo "${obj_name}.pic : ${path_name}$dependent_file" >> $zmake_obj_file
+                printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -fPIC -c -o \$@ $path_name\n" >> $zmake_obj_file
+
             }
         elif [ "$type" = "ar" ]; then
-            target_ars+=" ${obj_name}.ar"
-            echo >> $zmake_obj_file
-            echo "${obj_name}.ar : ${path_name}$dependent_file" >> $zmake_obj_file
-            printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
-
-            [[ "$zmake_obj_names" =~ "${obj_name}.ar" ]] || {
-                # append new obj_name
-                zmake_obj_names+=" ${obj_name}.ar"
-            }
-        elif  [ "$type" = "app" ]; then
-            target_objs+=" ${obj_name}.ar"
-            echo >> $zmake_obj_file
-            echo "${obj_name}.ar : ${path_name}$dependent_file" >> $zmake_obj_file
-            printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
-
-            [[ "$zmake_obj_names" =~ "${obj_name}.ar" ]] || {
-                # append new obj_name
-                zmake_obj_names+=" ${obj_name}.ar"
-            }
-        elif [ "$type" = "so+ar" ]; then
-            target_objs+=" ${obj_name}"
-            echo >> $zmake_obj_file
-            echo "$obj_name : ${path_name}$dependent_file" >> $zmake_obj_file
-            printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -fPIC -c -o \$@ $path_name\n" >> $zmake_obj_file
-
+            target_ars+=" ${obj_name}"
             [[ "$zmake_obj_names" =~ "${obj_name}" ]] || {
                 # append new obj_name
                 zmake_obj_names+=" ${obj_name}"
+                echo >> $zmake_obj_file
+                echo "${obj_name} : ${path_name}$dependent_file" >> $zmake_obj_file
+                printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
+            }
+        elif  [ "$type" = "app" ]; then
+            target_objs+=" ${obj_name}"
+            [[ "$zmake_obj_names" =~ "${obj_name}" ]] || {
+                # append new obj_name
+                zmake_obj_names+=" ${obj_name}"
+                echo >> $zmake_obj_file
+                echo "${obj_name} : ${path_name}$dependent_file" >> $zmake_obj_file
+                printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
+            }
+        elif [ "$type" = "so+ar" ]; then
+            target_objs+=" ${obj_name}.pic"
+            [[ "$zmake_obj_names" =~ "${obj_name}.pic" ]] || {
+                # append new obj_name
+                zmake_obj_names+=" ${obj_name}.pic"
+                echo >> $zmake_obj_file
+                echo "${obj_name}.pic : ${path_name}$dependent_file" >> $zmake_obj_file
+                printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -fPIC -c -o \$@ $path_name\n" >> $zmake_obj_file
+
             }
 
-            target_ars+=" ${obj_name}.ar"
-            echo >> $zmake_obj_file
-            echo "${obj_name}.ar : ${path_name}$dependent_file" >> $zmake_obj_file
-            printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
-
-            [[ "$zmake_obj_names" =~ "${obj_name}.ar" ]] || {
+            target_ars+=" ${obj_name}"
+            [[ "$zmake_obj_names" =~ "${obj_name}" ]] || {
                 # append new obj_name
-                zmake_obj_names+=" ${obj_name}.ar"
+                zmake_obj_names+=" ${obj_name}"
+                echo >> $zmake_obj_file
+                echo "${obj_name} : ${path_name}$dependent_file" >> $zmake_obj_file
+                printf "\t\$(CC) \$(OPTM) ${zmake_cflag} \$(CFLAG) -c -o \$@ $path_name\n" >> $zmake_obj_file
             }
         else
             zerr "impossible type"

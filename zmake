@@ -73,9 +73,9 @@ cat << !ZMAKE_DEF! > ${zmake_header}
 #define _ZMAKE_DEF_H_
 
 #define zmake_version "${zversion}"
-#define zmake_vmajor "${zver_major}"
-#define zmake_vminor "${zver_minor}"
-#define zmake_vrevision "${zver_revision}"
+#define zmake_vmajor ${zver_major}
+#define zmake_vminor ${zver_minor}
+#define zmake_vrevision ${zver_revision}
 #define zmake_albt "${zver_albt}"
 #define zmake_build_date "$(date '+%Y%m%d%H%M%S')"
 #define zmake_git_rev "${zgit_rev}"
@@ -101,12 +101,14 @@ CC=${zcc}
 
 cat << !MAKE_ALL! > $zmake_all
 ifeq (\$(BUILDS), debug)
-	OPTM=-g
+	OPTM=-g \$(OPTION)
 else ifeq (\$(BUILDS), release)
-	OPTM=-O3
+	OPTM=-O3 \$(OPTION)
+
 else
     BUILDS=release
-	OPTM=-O3
+	OPTM=-O3 \$(OPTION)
+
 endif
 
 CC=${zcc}
@@ -314,7 +316,7 @@ for item in ${all[@]}; do
             # 计算项目依赖
             target_deps=" "
             for dep in ${links}; do
-                target_deps+=${zmake_deps[$dep]}
+                target_deps+=" ${zmake_deps[$dep]}"
             done
             zinf "$target_app depedents: $target_deps"
             # 生成项目
